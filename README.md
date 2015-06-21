@@ -14,6 +14,7 @@ To test the software against precomputed values from GWINC, run:
 from the root Ditherm directory (the same directory as this readme).
 
 ## Future Work ##
+ - Test against a three-material coating such as the one used in [Steinlechner et al.](http://journals.aps.org/prd/abstract/10.1103/PhysRevD.91.042001)
  - Implement phase correction to Brownian calculation as per the functions on [this page](https://awiki.ligo-wa.caltech.edu/aLIGO/GWINC)
  - Look at proper way to combine multiple materials by reading these papers:
    - http://journals.aps.org/prd/abstract/10.1103/PhysRevD.91.042002
