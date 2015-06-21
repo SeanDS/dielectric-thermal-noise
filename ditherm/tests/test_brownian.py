@@ -44,7 +44,24 @@ class AdvancedLigoItmStack(stacks.Stack):
     
     super(AdvancedLigoItmStack, self).__init__(theseLayers, substrate)
 
-class TestBrownianNoise(TestCase):
+class SteinlechnerMultimaterialStack(stacks.Stack):
+  def __init__(self):    
+    substrate = materials.Material("Silica Substrate", 7.2e10, 0.167, 5e-9, 1.45)
+    coatingA = materials.Material("Silica Coating", 7.2e10, 0.17, 4e-5, 1.45)
+    coatingB = materials.Material("Tantala Coating", 1.47e11, 0.23, 2.3e-4, 2.2)
+    coatingC = materials.Material("Silicon Coating", 1.4e11, 0.22, 4.0e-4, 3.5)
+    
+    layerA = layers.Layer(coatingA, 267e-9)
+    layerB = layers.Layer(coatingB, 176e-9)
+    layerC = layers.Layer(coatingB, 111e-9)
+    
+    topLayer = layers.Layer(coatingA, 2*267e-9)
+
+    theseLayers = np.array([topLayer, layerB] + [layerA, layerB] * 7 + [layerA, layerC] * 5)
+    
+    super(SteinlechnerMultimaterialStack, self).__init__(theseLayers, substrate)
+
+class TestAdvancedLigoBrownianNoise(TestCase):
   def setUp(self):
     self.etmStack = AdvancedLigoEtmStack(1064e-9)
     self.itmStack = AdvancedLigoItmStack(1064e-9)
@@ -99,3 +116,27 @@ class TestBrownianNoise(TestCase):
     dithermETM = self.etmStack.brownianNoise(gwincData[:, 0], wETM, T)
     
     self.assertTrue(np.allclose(dithermETM, gwincData[:, 2], rtol=0.05, atol=0))
+
+class TestSteinlechnerMultimaterialBrownianNoise(TestCase):
+  def setUp(self):
+    self.stack = SteinlechnerMultimaterialStack()
+  
+  def test_d(self):
+    # value from p3 of http://journals.aps.org/prd/abstract/10.1103/PhysRevD.91.042001
+    # for multimaterial SiO2/TaO5/aSi stack
+    steinlechnerValue = 5.701e-6
+    
+    self.assertAlmostEqual(self.stack.d(), steinlechnerValue, delta=1e-15*steinlechnerValue)
+  
+  def test_brownian_noise(self):
+    w = 72.5e-3
+    T = 290
+    
+    # calculate noise at 100 Hz
+    ditherm = self.stack.brownianNoise(np.array([100]), w, T)
+    
+    # value from p3 of http://journals.aps.org/prd/abstract/10.1103/PhysRevD.91.042001
+    # for multimaterial SiO2/TaO5/aSi stack
+    steinlechnerValue = 4.3e-21
+    
+    self.assertAlmostEqual(np.sqrt(ditherm[0]), steinlechnerValue, delta=0.15*steinlechnerValue)
